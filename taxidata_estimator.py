@@ -14,24 +14,23 @@ import taxi_data
 nbuckets = 20
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-bs','--batch_size', default=50, type=int, help='batch size')
-parser.add_argument('-ts','--train_steps', default=880, type=int,
+parser.add_argument('--batch_size', '-bs', default=50, type=int, help='batch size')
+parser.add_argument('--train_steps', '-ts', default=880, type=int,
                     help='number of training steps')
-parser.add_argument('-ne','--num_epochs', default=5, type=int,
+parser.add_argument('--num_epochs', '-ne', default=5, type=int,
                     help='number of epochs')
-parser.add_argument('-lr','--learning_rate', default=0.01, type=float,
+parser.add_argument('--learning_rate', '-lr', default=0.01, type=float,
                     help='learning rate')
-parser.add_argument('-lt','--label_type', default='trip_duration', type=str,
-                    help='what data to use as the label')
-parser.add_argument('-mt','--model_type', default='combined', type=str,
-                    help='what type of model to use')
-parser.add_argument('-hu','--hidden_units', nargs='+', default=[4096,2048,1024], type=int,
-                    help='hidden layers and units in each layer')
-parser.add_argument('-cr','--classifier_regressor', default='classifier', type=str,
-                    help='hidden layers nad units in each layer')
+parser.add_argument('--label_type', '-lt', default='trip_duration', type=str,
+                    help='what data you want to predict, options; trip_duration, speed, dist_meters')
+parser.add_argument('--model_type', '-mt', default='combined', type=str,
+                    help='what type of model to use; options: linear, neural, combined')
+parser.add_argument('--hidden_units', '-hu', nargs='+', default=[4096,2048,1024], type=int,
+                    help='hidden layers and units in each layer, usage: -hu 4096 2048 1024')
+parser.add_argument('--classifier_regressor', '-cr', default='classifier', type=str,
+                    help='use a classifier or a regressor for your estimator')
 
 def build_model_columns():
-#def build_model_columns(minmax_latlong = [-80.0,-78.0,-3.0,1.0]):
     """Builds a set of wide and deep feature columns."""
     # Hashing:
     vendor_id = tf.feature_column.categorical_column_with_hash_bucket(
