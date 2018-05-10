@@ -152,7 +152,12 @@ def main(argv):
 
     # Fetch the data
     # (train_x, train_y), (test_x, test_y), minmax_latandlong = taxi_data.load_data(y_name='dist_meters')
-    (train_x, train_y), (test_x, test_y), classes = taxi_data.load_data(y_name=args.label_type, bucketize_labels=True)
+    if args.classifier_regressor == 'classifier':
+        use_classifier = True
+    else:
+        use_classifier = False
+    
+    (train_x, train_y), (test_x, test_y), classes = taxi_data.load_data(y_name=args.label_type, bucketize_labels=use_classifier)
 
 
 
@@ -265,37 +270,44 @@ def main(argv):
         input_fn=lambda:taxi_data.eval_input_fn(test_x, test_y,
                                                 args.batch_size))
 
+    print('/n')
     print(eval_result)
+    print('/n')
 
-    print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
-
+    
     # Generate predictions from the model
+    
+    # adjust to use different snapshots of the test data for predictions 
     i = 30
+    
 
     predictions = my_estimator.predict(
         input_fn=lambda:taxi_data.eval_input_fn(test_x[i:i+9],
                                                 labels=None,
                                                 batch_size=args.batch_size))
 
-    template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
+    if use_classifier == True:
+        print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
-    for pred_dict, expec in zip(predictions, test_y[i:i+9]):
-        class_id = pred_dict['class_ids'][0]
-        probability = pred_dict['probabilities'][class_id]
+        template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
 
-        print(template.format(classes[class_id],
-                              100 * probability, expec))
+        for pred_dict, expec in zip(predictions, test_y[i:i+9]):
+            class_id = pred_dict['class_ids'][0]
+            probability = pred_dict['probabilities'][class_id]
 
-    template = ('\nPrediction is "{}", actual value was "{}"')
+            print(template.format(classes[class_id],
+                                100 * probability, expec))
 
-    # for pred_dict in zip(predictions):
-    #     pred_dict = pred_dict[0]
-    #     prediction = pred_dict['predictions'][0]
-        
-    #     print('Features:')
-    #     print(test_x.loc[i])
-    #     print(template.format(math.exp(prediction), math.exp(test_y.ix[i,args.label_type])))
-    #     i = i + 1
+    else:
+        template = ('\nPrediction is "{}", actual value was "{}"')
+        for pred_dict in zip(predictions):
+            pred_dict = pred_dict[0]
+            prediction = pred_dict['predictions'][0]
+            
+            # print('\nFeatures:')
+            # print(test_x.loc[i])
+            print(template.format(round(math.exp(prediction)), round(math.exp(test_y.ix[i,args.label_type]))))
+            i = i + 1
 
 if __name__ == '__main__':
     tf.logging.set_verbosity(tf.logging.INFO)
